@@ -1,2 +1,2 @@
 # go-api-sessino
-Handle session for API, include rate limitting
+Handle session for API, supports rate limitting
