@@ -1,8 +1,8 @@
-$VERSION="v0.0.1"
+$VERSION="v0.0.3"
 
 go mod tidy
 go test 
-git commit -m ""
+git commit -m "New version"
 git tag $VERSION
 git push origin $VERSION
-go list -m github.com/zeroboo/go-api-session@v0.1.0
+go list -m github.com/zeroboo/go-api-session@$VERSION

@@ -1,14 +1,19 @@
-# go-api-session
-Handle session for API, supports rate limitting
+package main
 
-## Features
-- Validating session 
-- Rate limiting 
-  - request too frequently (HTTP code 429 Too Many Requests) using Fixed Window algorithm
-  - request too fast (HTTP code 425 Too Early)
+import (
+	"context"
+	"log"
 
-## Sample 
-```golang
+	"github.com/redis/go-redis/v9"
+	apisession "github.com/zeroboo/go-api-session"
+)
+
+func main() {
+	//Create redis client
+	client := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
 	//Create session manager
 	sessionManager := apisession.NewRedisSessionManager(client,
 		"session", //keys will have format of `session:<sessionId>``
@@ -35,7 +40,7 @@ Handle session for API, supports rate limitting
 		//...
 	} else {
 		//Invalid api call
-		log.Printf("Failed to update session: %v", errGet)
+		log.Fatalf("Failed to update session: %v", errGet)
 	}
-	
-```
+	log.Printf("Session: %#v", session)
+}
