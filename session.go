@@ -15,6 +15,9 @@ type APISession struct {
 
 	//Current time window
 	Window int64 `json:"w" msgpack:"w"`
+
+	//Payload are extra data of session
+	Payload map[string]interface{} `json:"p" msgpack:"p"`
 }
 
 // Tracks how an api is being called
@@ -25,16 +28,12 @@ type APICallRecord struct {
 
 	//Last call in milliseconds
 	Last int64 `json:"l" msgpack:"l"`
-
-	//Payload are extra data of session
-	Payload map[string]interface{} `json:"p" msgpack:"p"`
 }
 
 func NewAPICallRecord() *APICallRecord {
 	return &APICallRecord{
-		Count:   0,
-		Last:    0,
-		Payload: make(map[string]interface{}),
+		Count: 0,
+		Last:  0,
 	}
 
 }
@@ -47,6 +46,7 @@ func NewAPISession(owner string) *APISession {
 		Owner:   owner,
 		Records: make(map[string]*APICallRecord),
 		Window:  0,
+		Payload: make(map[string]interface{}),
 	}
 }
 
