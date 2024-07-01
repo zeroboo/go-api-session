@@ -1,13 +1,19 @@
 # go-api-session
 Handle session for API, supports rate limitting
 
+
 ## Features
 - Validating session 
 - Rate limiting 
   - request too frequently (HTTP code 429 Too Many Requests) using Fixed Window algorithm
   - request too fast (HTTP code 425 Too Early)
-
-## Sample 
+## Usage
+### Install
+```shell
+go get github.com/zeroboo/go-api-session
+```
+### Sample 
+#### Setup
 ```golang
 	//Create session manager
 	sessionManager := apisession.NewRedisSessionManager(client,
@@ -18,14 +24,18 @@ Handle session for API, supports rate limitting
 		1000)      //2 calls must be at least 1 second apart
 
 	owner := "user1"
-
+```
+#### Create new session
+```golang
 	//User starts a session: create new
 	sessionId, errGet := sessionManager.CreateNewSession(context.TODO(), owner)
 	if errGet != nil {
 		log.Printf("Failed to get session: %v", errGet)
 	}
 	//...
-
+```
+#### Use session to verify API calls
+```golang
 	//...
 	//Update in api call
 	session, errSession := sessionManager.RecordAPICall(context.TODO(), sessionId, owner, "url1")
