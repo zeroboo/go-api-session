@@ -71,7 +71,7 @@ func Hash(value string) string {
 	h := sha256.New()
 	h.Write([]byte(value))
 	bs := h.Sum(nil)
-	return string(bs)
+	return fmt.Sprintf("%x", bs)
 }
 
 func GenerateSessionKey(ownerId string) string {

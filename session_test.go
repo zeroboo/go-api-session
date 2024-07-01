@@ -2,20 +2,21 @@ package apisession
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// go test -timeout 30s -run ^TestValidateSession_ValidCall_NoError$ github.com/zeroboo/go-api-session
+// go test -timeout 30s -run ^TestValidateSession_ValidCall_NoError$ github.com/zeroboo/go-api-session -v
 func TestValidateSession_ValidCall_NoError(t *testing.T) {
 	owner := "user1"
 	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 10, 5)
 
 	sessionId, _ := manager.CreateNewSession(context.TODO(), owner)
 	sessionIds = append(sessionIds, sessionId)
-
+	fmt.Printf("SessionId: %v\n", sessionId)
 	session, _ := manager.GetSession(context.TODO(), sessionId)
 	now := time.Now().Unix()
 
