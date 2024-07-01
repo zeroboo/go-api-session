@@ -13,7 +13,7 @@ type APISession struct {
 	Window int64 `json:"w" msgpack:"w"`
 
 	//Payload are extra data of session
-	Payload map[string]interface{} `json:"p" msgpack:"p"`
+	Payload interface{} `json:"p" msgpack:"p"`
 }
 
 // Tracks how an api is being called
