@@ -25,12 +25,16 @@ type APICallRecord struct {
 
 	//Last call in milliseconds
 	Last int64 `json:"l" msgpack:"l"`
+
+	//Payload are extra data of session
+	Payload map[string]interface{} `json:"p" msgpack:"p"`
 }
 
 func NewAPICallRecord() *APICallRecord {
 	return &APICallRecord{
-		Count: 0,
-		Last:  0,
+		Count:   0,
+		Last:    0,
+		Payload: make(map[string]interface{}),
 	}
 
 }
