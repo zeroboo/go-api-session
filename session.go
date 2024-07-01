@@ -2,14 +2,10 @@ package apisession
 
 import (
 	"fmt"
-	"strings"
 )
 
 type APISession struct {
-	Id string `json:"i" msgpack:"i"`
-
-	Owner string `json:"o" msgpack:"o"`
-
+	Session string `json:"s" msgpack:"s"`
 	//Map of url to API call track
 	Records map[string]*APICallRecord `json:"r" msgpack:"r"`
 
@@ -43,7 +39,7 @@ func (session *APISession) RecordCall(url string) error {
 
 func NewAPISession(owner string) *APISession {
 	return &APISession{
-		Owner:   owner,
+		Session: GenerateSessionValue(owner),
 		Records: make(map[string]*APICallRecord),
 		Window:  0,
 		Payload: make(map[string]interface{}),
@@ -67,7 +63,6 @@ func (ses *APISession) GetCallRecord(url string) *APICallRecord {
 	return record
 }
 
-func (ses *APISession) ValidateOwner(owner string) bool {
-
-	return strings.EqualFold(ses.Owner, owner)
+func (ses *APISession) ValidateSession(session string) bool {
+	return ses.Session == session
 }

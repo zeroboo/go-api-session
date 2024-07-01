@@ -74,7 +74,7 @@ func Hash(value string) string {
 	return fmt.Sprintf("%x", bs)
 }
 
-func GenerateSessionKey(ownerId string) string {
+func GenerateSessionValue(ownerId string) string {
 	payload := fmt.Sprintf("%s-%d-%d", ownerId, time.Now().Unix(), rand.Int63())
 	sessionId := Hash(payload)
 	return sessionId
@@ -88,32 +88,45 @@ func GetRedisSessionKey(prefix string, sessionId string) string {
 	return fmt.Sprintf("%v:%v", prefix, sessionId)
 }
 
-func (sm *RedisSessionManager) RecordAPICall(ctx context.Context, sessionId string, owner string, url string) (*APISession, error) {
-	session, errGet := sm.GetSession(ctx, sessionId)
+func (sm *RedisSessionManager) RecordAPICall(ctx context.Context, sessionValue string, owner string, url string) (*APISession, error) {
+	session, errGet := sm.GetSession(ctx, owner)
 	if errGet != nil {
 		return nil, errGet
 	}
 
 	//Validate session
 	now := time.Now().UnixMilli()
-	errValidate := sm.ValidateCall(owner, url, session, now)
+	errValidate := sm.ValidateAPICall(APIRequest{
+		Owner:   owner,
+		Session: sessionValue,
+		URL:     url,
+	}, session, now)
 	if errValidate != nil {
 		return nil, errValidate
 	}
 
-	errUpdate := sm.SetSession(ctx, sessionId, session)
+	errUpdate := sm.SetSession(ctx, owner, session)
 	if errUpdate != nil {
 		return nil, errUpdate
 	}
 
 	return session, nil
 }
-func (sm *RedisSessionManager) ValidateCall(ownerId string, url string, session *APISession, now int64) error {
-	if !session.ValidateOwner(ownerId) {
+
+type APIRequest struct {
+	Owner   string
+	Session string
+	URL     string
+}
+
+func (sm *RedisSessionManager) ValidateAPICall(request APIRequest, session *APISession, now int64) error {
+	if session.Session != request.Session {
 		return ErrInvalidSession
 	}
+
 	sm.UpdateSession(now, session)
-	call := session.GetCallRecord(url)
+	call := session.GetCallRecord(request.URL)
+
 	if sm.requestInterval > 0 {
 		if now-call.Last < sm.requestInterval {
 			return ErrTooFast
@@ -130,8 +143,8 @@ func (sm *RedisSessionManager) ValidateCall(ownerId string, url string, session 
 
 }
 
-func (sm *RedisSessionManager) GetSession(ctx context.Context, sessionId string) (*APISession, error) {
-	key := sm.GetSessionKey(sessionId)
+func (sm *RedisSessionManager) GetSession(ctx context.Context, owner string) (*APISession, error) {
+	key := sm.GetSessionKey(owner)
 	cmd := sm.redisClient.Get(ctx, key)
 	payload, errRedis := cmd.Bytes()
 	if errRedis != nil {
@@ -153,13 +166,14 @@ func (sm *RedisSessionManager) UpdateSession(currentMillis int64, session *APISe
 	}
 
 }
-func (sm *RedisSessionManager) SetSession(ctx context.Context, sessionId string, session *APISession) error {
+func (sm *RedisSessionManager) SetSession(ctx context.Context, owner string, session *APISession) error {
 	payload, errSerialize := msgpack.Marshal(session)
 	if errSerialize != nil {
 		return errSerialize
 	}
 
-	cmd := sm.redisClient.Set(ctx, sm.GetSessionKey(sessionId), payload, sm.sessionTTL)
+	key := sm.GetSessionKey(owner)
+	cmd := sm.redisClient.Set(ctx, key, payload, sm.sessionTTL)
 
 	return cmd.Err()
 }
@@ -170,18 +184,16 @@ func (sm *RedisSessionManager) SetSession(ctx context.Context, sessionId string,
 //   - sessionId string: id of new session
 //   - error: error if exists, nil is successful
 func (sm *RedisSessionManager) CreateNewSession(ctx context.Context, owner string) (string, error) {
-	sessionId := GenerateSessionKey(owner)
 	session := NewAPISession(owner)
-
-	errSet := sm.SetSession(ctx, sessionId, session)
+	errSet := sm.SetSession(ctx, owner, session)
 	if errSet != nil {
 		return "", errSet
 	}
-	return sessionId, nil
+	return session.Session, nil
 }
 
-func (sm *RedisSessionManager) DeleteSession(ctx context.Context, sessionId string) error {
-	key := sm.GetSessionKey(sessionId)
+func (sm *RedisSessionManager) DeleteSession(ctx context.Context, owner string) error {
+	key := sm.GetSessionKey(owner)
 	cmd := sm.redisClient.Del(ctx, key)
 	return cmd.Err()
 }

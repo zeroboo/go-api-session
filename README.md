@@ -38,7 +38,7 @@ go get github.com/zeroboo/go-api-session
 ```golang
 	//...
 	//Update in api call
-	session, errSession := sessionManager.RecordAPICall(context.TODO(), sessionId, owner, "url1")
+	session, errSession := sessionManager.RecordAPICall(context.TODO(), sessionValue, owner, "url1")
 	if errSession == nil {
 		//Valid api call
 		//Next processing...
