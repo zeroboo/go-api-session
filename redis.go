@@ -95,7 +95,7 @@ func (sm *RedisSessionManager) RecordAPICall(ctx context.Context, sessionValue s
 	}
 
 	//Validate session
-	now := time.Now().UnixMilli()
+	now := time.Now()
 	errValidate := sm.ValidateAPICall(&APIRequest{
 		Owner:     owner,
 		SessionId: sessionValue,
@@ -119,11 +119,11 @@ type APIRequest struct {
 	URL       string
 }
 
-func (sm *RedisSessionManager) ValidateAPICall(request *APIRequest, session *APISession, now int64) error {
+func (sm *RedisSessionManager) ValidateAPICall(request *APIRequest, session *APISession, currentTime time.Time) error {
 	if session.Id != request.SessionId {
 		return ErrInvalidSession
 	}
-
+	now := currentTime.UnixMilli()
 	sm.UpdateSession(now, session)
 	call := session.GetCallRecord(request.URL)
 

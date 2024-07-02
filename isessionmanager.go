@@ -1,6 +1,9 @@
 package apisession
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type ISessionManager interface {
 	// Records an API call: load session, update the session with the API call, validate it and save it back if api call is valid.
@@ -25,7 +28,7 @@ type ISessionManager interface {
 	//
 	// Returns:
 	//   - error: nil if success, an error instance if any
-	ValidateAPICall(request *APIRequest, session *APISession, now int64) error
+	ValidateAPICall(request *APIRequest, session *APISession, now time.Time) error
 
 	// Loads session of a user from database
 	GetSession(ctx context.Context, owner string) (*APISession, error)

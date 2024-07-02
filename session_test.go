@@ -21,7 +21,7 @@ func TestValidateSession_ValidCall_NoError(t *testing.T) {
 	fmt.Printf("SessionId: %v\n", sessionId)
 	session, errGetSession := manager.GetSession(context.TODO(), owner)
 	assert.Nil(t, errGetSession, "Get session, no error")
-	now := time.Now().Unix()
+	now := time.Now()
 
 	errValidate := manager.ValidateAPICall(&APIRequest{
 		Owner:     owner,
@@ -40,7 +40,7 @@ func TestValidateSession_InvalidSessionValue_Error(t *testing.T) {
 	sessionOwners = append(sessionOwners, owner)
 
 	session, _ := manager.GetSession(context.TODO(), owner)
-	now := time.Now().Unix()
+	now := time.Now()
 
 	errValidate := manager.ValidateAPICall(&APIRequest{
 		Owner:     owner,
@@ -59,7 +59,7 @@ func TestValidateSession_TooFast_Error(t *testing.T) {
 	session, _ := manager.GetSession(context.TODO(), owner)
 	sessionOwners = append(sessionOwners, owner)
 
-	now := time.Now().Unix()
+	now := time.Now()
 	var errValidate error
 
 	errValidate = manager.ValidateAPICall(&APIRequest{
@@ -84,7 +84,7 @@ func TestValidateSession_TooFrequently_Error(t *testing.T) {
 	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	session, _ := manager.GetSession(context.TODO(), owner)
 	sessionOwners = append(sessionOwners, owner)
-	now := time.Now().Unix()
+	now := time.Now()
 	var errValidate error
 
 	errValidate = manager.ValidateAPICall(&APIRequest{
@@ -118,7 +118,7 @@ func TestValidateSession_NewWindow_Correct(t *testing.T) {
 	sessionOwners = append(sessionOwners, owner)
 	session, _ := manager.GetSession(context.TODO(), owner)
 
-	now := time.Now().Unix()
+	now := time.Now()
 	var errValidate error
 
 	errValidate = manager.ValidateAPICall(&APIRequest{
@@ -132,14 +132,15 @@ func TestValidateSession_NewWindow_Correct(t *testing.T) {
 		Owner:     owner,
 		SessionId: sessionId,
 		URL:       "url1",
-	}, session, now+interval+1)
+	}, session, now.Add(time.Duration(interval+1)*time.Millisecond))
 	assert.Equal(t, nil, errValidate, "second call, no error")
 
 	errValidate = manager.ValidateAPICall(&APIRequest{
 		Owner:     owner,
 		SessionId: sessionId,
 		URL:       "url1",
-	}, session, now+2*interval+1)
+	}, session, now.Add(time.Duration(2*interval+1)*time.Millisecond))
+
 	assert.Equal(t, ErrTooMany, errValidate, "third call is too frequently, has error")
 
 	session.SetWindow(session.Window + 1)
@@ -147,6 +148,6 @@ func TestValidateSession_NewWindow_Correct(t *testing.T) {
 		Owner:     owner,
 		SessionId: sessionId,
 		URL:       "url1",
-	}, session, now+2*interval+1)
+	}, session, now.Add(time.Duration(2*interval+1)*time.Millisecond))
 	assert.Equal(t, nil, errValidate, "new windows, request valid")
 }
