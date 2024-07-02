@@ -42,7 +42,7 @@ func NewAPISession(owner string) *APISession {
 		Session: GenerateSessionValue(owner),
 		Records: make(map[string]*APICallRecord),
 		Window:  0,
-		Payload: make(map[string]interface{}),
+		Payload: nil,
 	}
 }
 
