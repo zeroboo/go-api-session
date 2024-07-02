@@ -96,10 +96,10 @@ func (sm *RedisSessionManager) RecordAPICall(ctx context.Context, sessionValue s
 
 	//Validate session
 	now := time.Now().UnixMilli()
-	errValidate := sm.ValidateAPICall(APIRequest{
-		Owner:   owner,
-		Session: sessionValue,
-		URL:     url,
+	errValidate := sm.ValidateAPICall(&APIRequest{
+		Owner:     owner,
+		SessionId: sessionValue,
+		URL:       url,
 	}, session, now)
 	if errValidate != nil {
 		return nil, errValidate
@@ -114,13 +114,13 @@ func (sm *RedisSessionManager) RecordAPICall(ctx context.Context, sessionValue s
 }
 
 type APIRequest struct {
-	Owner   string
-	Session string
-	URL     string
+	Owner     string
+	SessionId string
+	URL       string
 }
 
-func (sm *RedisSessionManager) ValidateAPICall(request APIRequest, session *APISession, now int64) error {
-	if session.Session != request.Session {
+func (sm *RedisSessionManager) ValidateAPICall(request *APIRequest, session *APISession, now int64) error {
+	if session.Id != request.SessionId {
 		return ErrInvalidSession
 	}
 
@@ -132,7 +132,6 @@ func (sm *RedisSessionManager) ValidateAPICall(request APIRequest, session *APIS
 			return ErrTooFast
 		}
 	}
-
 	if call.Count+1 > sm.maxCallPerWindow {
 		return ErrTooMany
 	}
@@ -146,13 +145,14 @@ func (sm *RedisSessionManager) ValidateAPICall(request APIRequest, session *APIS
 func (sm *RedisSessionManager) GetSession(ctx context.Context, owner string) (*APISession, error) {
 	key := sm.GetSessionKey(owner)
 	cmd := sm.redisClient.Get(ctx, key)
-	payload, errRedis := cmd.Bytes()
+	bytes, errRedis := cmd.Bytes()
 	if errRedis != nil {
 		return nil, errRedis
 	}
 
 	session := &APISession{}
-	errUnmarshal := msgpack.Unmarshal(payload, session)
+	errUnmarshal := msgpack.Unmarshal(bytes, session)
+
 	if errUnmarshal != nil {
 		return nil, errUnmarshal
 	}
@@ -189,7 +189,7 @@ func (sm *RedisSessionManager) StartSession(ctx context.Context, owner string) (
 	if errSet != nil {
 		return "", errSet
 	}
-	return session.Session, nil
+	return session.Id, nil
 }
 
 func (sm *RedisSessionManager) DeleteSession(ctx context.Context, owner string) error {

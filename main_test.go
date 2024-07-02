@@ -10,7 +10,7 @@ import (
 )
 
 var redisClient *redis.Client
-var sessionIds []string = []string{}
+var sessionOwners []string = []string{}
 var sessionPrefix string = "sess"
 
 func TestMain(m *testing.M) {
@@ -31,13 +31,13 @@ func TestMain(m *testing.M) {
 }
 
 func CleanUpTest() {
-	for _, sessionId := range sessionIds {
-		key := GetRedisSessionKey(sessionPrefix, sessionId)
+	for _, owner := range sessionOwners {
+		key := GetRedisSessionKey(sessionPrefix, owner)
 		cmd := redisClient.Del(context.TODO(), key)
 		if cmd.Err() != nil {
-			log.Infof("Failed to delete session %s: %v", sessionId, cmd.Err())
+			log.Infof("Failed to delete session %s: %v", owner, cmd.Err())
 		} else {
-			log.Infof("Deleted session %s %v", key, cmd.String())
+			log.Infof("Deleted session of %s, key=%v", owner, key)
 		}
 	}
 }

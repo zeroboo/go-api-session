@@ -5,7 +5,7 @@ import (
 )
 
 type APISession struct {
-	Session string `json:"s" msgpack:"s"`
+	Id string `json:"i" msgpack:"i"`
 	//Map of url to API call track
 	Records map[string]*APICallRecord `json:"r" msgpack:"r"`
 
@@ -14,6 +14,9 @@ type APISession struct {
 
 	//Payload are extra data of session
 	Payload interface{} `json:"p" msgpack:"p"`
+
+	//
+	Meta map[string]any `json:"m" msgpack:"m"`
 }
 
 // Tracks how an api is being called
@@ -39,10 +42,11 @@ func (session *APISession) RecordCall(url string) error {
 
 func NewAPISession(owner string) *APISession {
 	return &APISession{
-		Session: GenerateSessionValue(owner),
+		Id:      GenerateSessionValue(owner),
 		Records: make(map[string]*APICallRecord),
 		Window:  0,
 		Payload: nil,
+		Meta:    nil,
 	}
 }
 
@@ -51,6 +55,64 @@ func (ses *APISession) SetWindow(window int64) {
 	for _, record := range ses.Records {
 		record.Count = 0
 	}
+}
+func (ses *APISession) SetMeta(key string, value any) {
+	if ses.Meta == nil {
+		ses.Meta = make(map[string]any)
+	}
+	ses.Meta[key] = value
+}
+
+func (ses *APISession) GetMeta(key string) any {
+	if ses.Meta == nil {
+		return nil
+	}
+	return ses.Meta[key]
+}
+
+// Returns metadata as string, empty string if not found
+func (ses *APISession) GetMetaString(key string) string {
+	if ses.Meta == nil {
+		return ""
+	}
+	value := ses.Meta[key]
+	if value != nil {
+		strValue, isString := value.(string)
+		if isString {
+			return strValue
+		}
+	}
+	return ""
+}
+
+// Returns metadata as int64, 0 if not found
+func (ses *APISession) GetMetaInt64(key string) int64 {
+	if ses.Meta == nil {
+		return 0
+	}
+	value := ses.Meta[key]
+	if value != nil {
+		intValue, isString := value.(int64)
+		if isString {
+			return intValue
+		}
+	}
+	return 0
+}
+
+// Returns metadata as int, 0 if not found
+func (ses *APISession) GetMetaInt(key string) int {
+	if ses.Meta == nil {
+		return 0
+	}
+	value := ses.Meta[key]
+	if value != nil {
+		intValue, isString := value.(int)
+		if isString {
+			return intValue
+		}
+	}
+	return 0
 }
 
 func (ses *APISession) GetCallRecord(url string) *APICallRecord {
@@ -64,5 +126,5 @@ func (ses *APISession) GetCallRecord(url string) *APICallRecord {
 }
 
 func (ses *APISession) ValidateSession(session string) bool {
-	return ses.Session == session
+	return ses.Id == session
 }
