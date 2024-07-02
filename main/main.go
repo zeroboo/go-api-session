@@ -25,7 +25,7 @@ func main() {
 	owner := "user1"
 
 	//User starts a session: create new
-	sessionId, errGet := sessionManager.CreateNewSession(context.TODO(), owner)
+	sessionId, errGet := sessionManager.StartSession(context.TODO(), owner)
 	if errGet != nil {
 		log.Printf("Failed to get session: %v", errGet)
 	}

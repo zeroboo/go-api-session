@@ -178,12 +178,12 @@ func (sm *RedisSessionManager) SetSession(ctx context.Context, owner string, ses
 	return cmd.Err()
 }
 
-// CreateNewSession creates a new session for the owner and insert to db
+// StartSession creates a new session for the owner and insert to db
 //
 // Returns:
 //   - sessionId string: id of new session
 //   - error: error if exists, nil is successful
-func (sm *RedisSessionManager) CreateNewSession(ctx context.Context, owner string) (string, error) {
+func (sm *RedisSessionManager) StartSession(ctx context.Context, owner string) (string, error) {
 	session := NewAPISession(owner)
 	errSet := sm.SetSession(ctx, owner, session)
 	if errSet != nil {

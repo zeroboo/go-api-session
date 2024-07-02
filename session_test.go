@@ -14,7 +14,7 @@ func TestValidateSession_ValidCall_NoError(t *testing.T) {
 	owner := "user1"
 	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 10, 5)
 
-	sessionId, errNewSession := manager.CreateNewSession(context.TODO(), owner)
+	sessionId, errNewSession := manager.StartSession(context.TODO(), owner)
 	assert.Nil(t, errNewSession, "Create new session, no error")
 	sessionIds = append(sessionIds, sessionId)
 	fmt.Printf("SessionId: %v\n", sessionId)
@@ -35,7 +35,7 @@ func TestValidateSession_ValidCall_NoError(t *testing.T) {
 func TestValidateSession_InvalidSessionValue_Error(t *testing.T) {
 	owner := "user1"
 	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 10, 5)
-	sessionId, _ := manager.CreateNewSession(context.TODO(), owner)
+	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	sessionIds = append(sessionIds, sessionId)
 
 	session, _ := manager.GetSession(context.TODO(), owner)
@@ -53,7 +53,7 @@ func TestValidateSession_InvalidSessionValue_Error(t *testing.T) {
 func TestValidateSession_TooFast_Error(t *testing.T) {
 	owner := "user1"
 	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 3, 10)
-	sessionId, _ := manager.CreateNewSession(context.TODO(), owner)
+	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	session, _ := manager.GetSession(context.TODO(), owner)
 	sessionIds = append(sessionIds, sessionId)
 
@@ -79,7 +79,7 @@ func TestValidateSession_TooFast_Error(t *testing.T) {
 func TestValidateSession_TooFrequently_Error(t *testing.T) {
 	owner := "user1"
 	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 2, 0)
-	sessionId, _ := manager.CreateNewSession(context.TODO(), owner)
+	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	session, _ := manager.GetSession(context.TODO(), owner)
 	sessionIds = append(sessionIds, sessionId)
 	now := time.Now().Unix()
@@ -112,7 +112,7 @@ func TestValidateSession_NewWindow_Correct(t *testing.T) {
 	owner := "user1"
 	interval := int64(10)
 	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 2, interval)
-	sessionId, _ := manager.CreateNewSession(context.TODO(), owner)
+	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	sessionIds = append(sessionIds, sessionId)
 	session, _ := manager.GetSession(context.TODO(), owner)
 

@@ -7,5 +7,5 @@ type ISessionManager interface {
 	GetSession(ctx context.Context, owner string) (*APISession, error)
 	DeleteSession(ctx context.Context, owner string) error
 	SetSession(ctx context.Context, owner string, session *APISession) error
-	CreateNewSession(ctx context.Context, owner string) (string, error)
+	StartSession(ctx context.Context, owner string) (string, error)
 }
