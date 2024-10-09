@@ -151,3 +151,25 @@ func TestValidateSession_NewWindow_Correct(t *testing.T) {
 	}, session, now.Add(time.Duration(2*interval+1)*time.Millisecond))
 	assert.Equal(t, nil, errValidate, "new windows, request valid")
 }
+
+// go test -timeout 30s -run ^TestGetMapFromSession_Correct$ github.com/zeroboo/go-api-session -v
+func TestGetMapFromSession_Correct(t *testing.T) {
+	session := NewAPISessionWithPayload("user1", map[string]any{})
+	mapValue, ok := GetPayloadMap[string, int64](session, "key")
+	assert.False(t, ok, "Key not found")
+	assert.Nil(t, mapValue, "Value is nil")
+	t.Logf("Empty map value: %v", mapValue)
+
+	session.SetPayload("key", map[string]int64{"key1": 1, "key2": 2})
+	mapValue, ok = GetPayloadMap[string, int64](session, "key")
+	assert.True(t, ok, "Key found")
+	assert.NotNil(t, mapValue, "Value is not nil")
+	t.Logf("Valid map value: %v", mapValue)
+	mapValue["key3"] = 3
+
+	updatedMapValue, ok := GetPayloadMap[string, int64](session, "key")
+	assert.True(t, ok, "Key found")
+	assert.NotNil(t, mapValue, "Value is not nil")
+	t.Logf("Updated map value: %v", updatedMapValue)
+
+}

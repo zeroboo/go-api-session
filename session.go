@@ -55,7 +55,7 @@ func NewAPISessionWithPayload(owner string, payload map[string]any) *APISession 
 	}
 }
 
-func (ses *APISession) AddPayload(key string, value any) {
+func (ses *APISession) SetPayload(key string, value any) {
 	if ses.Payload == nil {
 		ses.Payload = make(map[string]any)
 	}
@@ -133,4 +133,21 @@ func (ses *APISession) GetCallRecord(url string) *APICallRecord {
 
 func (ses *APISession) ValidateSession(session string) bool {
 	return ses.Id == session
+}
+
+func GetPayloadMap[K comparable, V any](sess *APISession, key string) (map[K]V, bool) {
+	value, exist := sess.Payload[key]
+	if !exist {
+		return nil, false
+	}
+
+	typedValue, ok := value.(map[K]V)
+	return typedValue, ok
+}
+
+func SetPayloadMap[K comparable, V any](sess *APISession, key string, value map[K]V) {
+	if sess.Payload == nil {
+		sess.Payload = make(map[string]any)
+	}
+	sess.Payload[key] = value
 }
