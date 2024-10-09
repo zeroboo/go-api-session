@@ -13,10 +13,7 @@ type APISession struct {
 	Window int64 `json:"w" msgpack:"w"`
 
 	//Payload are extra data of session
-	Payload any `json:"p" msgpack:"p"`
-
-	//
-	Meta map[string]any `json:"m" msgpack:"m"`
+	Payload map[string]any `json:"p" msgpack:"p"`
 }
 
 // Tracks how an api is being called
@@ -46,45 +43,45 @@ func NewAPISession(owner string) *APISession {
 		Records: make(map[string]*APICallRecord),
 		Window:  0,
 		Payload: nil,
-		Meta:    nil,
 	}
 }
 
-func NewAPISessionFull(owner string, payload any, meta map[string]any) *APISession {
+func NewAPISessionFull(owner string, payload map[string]any, meta map[string]any) *APISession {
 	return &APISession{
 		Id:      GenerateSessionValue(owner),
 		Records: make(map[string]*APICallRecord),
 		Window:  0,
 		Payload: payload,
-		Meta:    meta,
 	}
 }
+
+func (ses *APISession) AddPayload(key string, value any) {
+	if ses.Payload == nil {
+		ses.Payload = make(map[string]any)
+	}
+	ses.Payload[key] = value
+}
+
+func (ses *APISession) GetPayload(key string) any {
+	if ses.Payload == nil {
+		return nil
+	}
+	return ses.Payload[key]
+}
+
 func (ses *APISession) SetWindow(window int64) {
 	ses.Window = window
 	for _, record := range ses.Records {
 		record.Count = 0
 	}
 }
-func (ses *APISession) SetMeta(key string, value any) {
-	if ses.Meta == nil {
-		ses.Meta = make(map[string]any)
-	}
-	ses.Meta[key] = value
-}
-
-func (ses *APISession) GetMeta(key string) any {
-	if ses.Meta == nil {
-		return nil
-	}
-	return ses.Meta[key]
-}
 
 // Returns metadata as string, empty string if not found
-func (ses *APISession) GetMetaString(key string) string {
-	if ses.Meta == nil {
+func (ses *APISession) GetPayloadString(key string) string {
+	if ses.Payload == nil {
 		return ""
 	}
-	value := ses.Meta[key]
+	value := ses.Payload[key]
 	if value != nil {
 		strValue, isString := value.(string)
 		if isString {
@@ -95,14 +92,14 @@ func (ses *APISession) GetMetaString(key string) string {
 }
 
 // Returns metadata as int64, 0 if not found
-func (ses *APISession) GetMetaInt64(key string) int64 {
-	if ses.Meta == nil {
+func (ses *APISession) GetPayloadInt64(key string) int64 {
+	if ses.Payload == nil {
 		return 0
 	}
-	value := ses.Meta[key]
+	value := ses.Payload[key]
 	if value != nil {
-		intValue, isString := value.(int64)
-		if isString {
+		intValue, isInt64 := value.(int64)
+		if isInt64 {
 			return intValue
 		}
 	}
@@ -110,14 +107,14 @@ func (ses *APISession) GetMetaInt64(key string) int64 {
 }
 
 // Returns metadata as int, 0 if not found
-func (ses *APISession) GetMetaInt(key string) int {
-	if ses.Meta == nil {
+func (ses *APISession) GetPayloadInt(key string) int {
+	if ses.Payload == nil {
 		return 0
 	}
-	value := ses.Meta[key]
+	value := ses.Payload[key]
 	if value != nil {
-		intValue, isString := value.(int)
-		if isString {
+		intValue, isInt := value.(int)
+		if isInt {
 			return intValue
 		}
 	}
