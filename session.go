@@ -145,6 +145,31 @@ func GetPayloadMap[K comparable, V any](sess *APISession, key string) (map[K]V, 
 	return typedValue, ok
 }
 
+func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) (map[K]V, bool) {
+	value, exist := sess.Payload[key]
+	if !exist {
+		newMap := make(map[K]V)
+		sess.Payload[key] = value
+		return newMap, false
+	}
+
+	typedValue, ok := value.(map[K]V)
+	return typedValue, ok
+}
+
+func GetOrCreatePayloadSlice[V any](sess *APISession, key string) ([]V, bool) {
+	value, exist := sess.Payload[key]
+	if !exist {
+		newSlice := make([]V, 0)
+		sess.Payload[key] = value
+		return newSlice, false
+	}
+
+	typedValue, ok := value.([]V)
+	return typedValue, ok
+}
+
+// SetPayloadMap init a map in session payload
 func SetPayloadMap[K comparable, V any](sess *APISession, key string, value map[K]V) {
 	if sess.Payload == nil {
 		sess.Payload = make(map[string]any)

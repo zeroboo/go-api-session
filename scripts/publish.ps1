@@ -1,4 +1,4 @@
-$VERSION="v1.0.9"
+$VERSION="v1.2.0"
 
 go mod tidy
 go test 
