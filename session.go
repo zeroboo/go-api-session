@@ -156,6 +156,15 @@ func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) (m
 	typedValue, ok := value.(map[K]V)
 	return typedValue, ok
 }
+func GetPayloadSlice[V any](sess *APISession, key string) ([]V, bool) {
+	value, exist := sess.Payload[key]
+	if !exist {
+		return nil, false
+	}
+
+	typedValue, ok := value.([]V)
+	return typedValue, ok
+}
 
 func GetOrCreatePayloadSlice[V any](sess *APISession, key string) ([]V, bool) {
 	value, exist := sess.Payload[key]
