@@ -46,7 +46,7 @@ func NewAPISession(owner string) *APISession {
 	}
 }
 
-func NewAPISessionFull(owner string, payload map[string]any, meta map[string]any) *APISession {
+func NewAPISessionWithPayload(owner string, payload map[string]any) *APISession {
 	return &APISession{
 		Id:      GenerateSessionValue(owner),
 		Records: make(map[string]*APICallRecord),
