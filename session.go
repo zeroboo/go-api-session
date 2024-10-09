@@ -161,9 +161,16 @@ func GetPayloadSlice[V any](sess *APISession, key string) ([]V, bool) {
 	if !exist {
 		return nil, false
 	}
+	retValues := []V{}
+	for _, v := range value.([]any) {
+		typedValue, ok := v.(V)
+		if !ok {
+			return nil, false
+		}
+		retValues = append(retValues, typedValue)
+	}
 
-	typedValue, ok := value.([]V)
-	return typedValue, ok
+	return retValues, true
 }
 
 func GetOrCreatePayloadSlice[V any](sess *APISession, key string) ([]V, bool) {
