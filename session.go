@@ -13,7 +13,7 @@ type APISession struct {
 	Window int64 `json:"w" msgpack:"w"`
 
 	//Payload are extra data of session
-	Payload interface{} `json:"p" msgpack:"p"`
+	Payload any `json:"p" msgpack:"p"`
 
 	//
 	Meta map[string]any `json:"m" msgpack:"m"`
@@ -50,6 +50,15 @@ func NewAPISession(owner string) *APISession {
 	}
 }
 
+func NewAPISessionFull(owner string, payload any, meta map[string]any) *APISession {
+	return &APISession{
+		Id:      GenerateSessionValue(owner),
+		Records: make(map[string]*APICallRecord),
+		Window:  0,
+		Payload: payload,
+		Meta:    meta,
+	}
+}
 func (ses *APISession) SetWindow(window int64) {
 	ses.Window = window
 	for _, record := range ses.Records {
