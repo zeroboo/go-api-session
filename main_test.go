@@ -28,6 +28,7 @@ func TestMain(m *testing.M) {
 
 	CleanUpTest()
 	os.Exit(code)
+
 }
 
 func CleanUpTest() {
