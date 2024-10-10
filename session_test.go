@@ -173,3 +173,20 @@ func TestGetMapFromSession_Correct(t *testing.T) {
 	t.Logf("Updated map value: %v", updatedMapValue)
 
 }
+
+// go test -timeout 30s -run ^TestGetSliceFromSession_Correct$ github.com/zeroboo/go-api-session -v
+func TestGetSliceFromSession_Correct(t *testing.T) {
+	session := NewAPISessionWithPayload("user1", map[string]any{
+		"key": []string{"1"},
+	})
+	slice, ok := GetOrCreatePayloadSlice[string](session, "key")
+	assert.True(t, ok, "Key found")
+	assert.NotNil(t, slice, "Value is nil")
+	t.Logf("Empty slice value: %v", slice)
+
+	slice, ok = GetPayloadSlice[string](session, "invalidkey")
+	assert.False(t, ok, "Key found")
+	assert.Nil(t, slice, "Value is nil")
+	t.Logf("Empty slice value: %v", slice)
+
+}

@@ -197,3 +197,15 @@ func (sm *RedisSessionManager) DeleteSession(ctx context.Context, owner string) 
 	cmd := sm.redisClient.Del(ctx, key)
 	return cmd.Err()
 }
+
+func (sm *RedisSessionManager) GetRequestInterval() int64 {
+	return sm.requestInterval
+}
+
+func (sm *RedisSessionManager) GetMaxCallPerWindow() int64 {
+	return sm.maxCallPerWindow
+}
+
+func (sm *RedisSessionManager) GetWindowSize() int64 {
+	return sm.windowSize
+}
