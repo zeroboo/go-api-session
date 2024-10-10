@@ -38,4 +38,8 @@ type ISessionManager interface {
 	SetSession(ctx context.Context, owner string, session *APISession) error
 
 	StartSession(ctx context.Context, owner string) (string, error)
+
+	GetRequestInterval() int64
+	GetMaxCallPerWindow() int64
+	GetWindowSize() int64
 }
