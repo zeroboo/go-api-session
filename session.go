@@ -135,34 +135,42 @@ func (ses *APISession) ValidateSession(session string) bool {
 	return ses.Id == session
 }
 
+// GetPayloadMap returns a map from session payload, if not exist, return nil
 func GetPayloadMap[K comparable, V any](sess *APISession, key string) map[K]V {
 	value, exist := sess.Payload[key]
 	if !exist {
 		return nil
 	}
 
-	result := make(map[K]V)
-	for k, v := range value.(map[K]any) {
-		result[k] = v.(V)
+	typedValue, ok := value.(map[K]V)
+	if !ok {
+		return nil
 	}
-
-	return result
+	return typedValue
 }
 
-func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) map[K]V {
+// GetOrCreatePayloadMap returns a map from session payload, if not exist, create a new map.
+// If the value of key is not a map, replace it with a new map
+//
+// Return the map and a boolean indicate if the map is created
+func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) (map[K]V, bool) {
 	value, exist := sess.Payload[key]
 	if !exist {
 		newMap := make(map[K]V)
-		sess.Payload[key] = value
-		return newMap
+		sess.Payload[key] = newMap
+		return newMap, true
 	}
 
-	result := make(map[K]V)
-	for k, v := range value.(map[K]any) {
-		result[k] = v.(V)
+	typedValue, ok := value.(map[K]V)
+	if ok {
+		return typedValue, false
 	}
 
-	return result
+	//Casting failed, replace with new map
+	newMap := make(map[K]V)
+	sess.Payload[key] = newMap
+	return newMap, true
+
 }
 func GetPayloadSlice[V any](sess *APISession, key string) ([]V, bool) {
 	value, exist := sess.Payload[key]

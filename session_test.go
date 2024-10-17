@@ -155,23 +155,32 @@ func TestValidateSession_NewWindow_Correct(t *testing.T) {
 // go test -timeout 30s -run ^TestGetMapFromSession_Correct$ github.com/zeroboo/go-api-session -v
 func TestGetMapFromSession_Correct(t *testing.T) {
 	session := NewAPISessionWithPayload("user1", map[string]any{})
-	mapValue, ok := GetPayloadMap[string, int64](session, "key")
-	assert.False(t, ok, "Key not found")
+	mapValue := GetPayloadMap[string, int64](session, "key")
 	assert.Nil(t, mapValue, "Value is nil")
 	t.Logf("Empty map value: %v", mapValue)
 
 	session.SetPayload("key", map[string]int64{"key1": 1, "key2": 2})
-	mapValue, ok = GetPayloadMap[string, int64](session, "key")
-	assert.True(t, ok, "Key found")
+	mapValue = GetPayloadMap[string, int64](session, "key")
 	assert.NotNil(t, mapValue, "Value is not nil")
 	t.Logf("Valid map value: %v", mapValue)
 	mapValue["key3"] = 3
 
-	updatedMapValue, ok := GetPayloadMap[string, int64](session, "key")
-	assert.True(t, ok, "Key found")
+	updatedMapValue := GetPayloadMap[string, int64](session, "key")
 	assert.NotNil(t, mapValue, "Value is not nil")
 	t.Logf("Updated map value: %v", updatedMapValue)
 
+	//Test getorcreate
+	map2, create := GetOrCreatePayloadMap[string, int64](session, "key3")
+	assert.True(t, create, "New value is created")
+	assert.NotNil(t, map2, "Value is not nil")
+	t.Logf("GetOrCreatePayloadMap map value: %v", map2)
+	map2["key4"] = 4
+	t.Logf("GetOrCreatePayloadMap map value after add: %v", map2)
+
+	map2After, created := GetOrCreatePayloadMap[string, int64](session, "key3")
+	assert.False(t, created, "Key not created")
+	t.Logf("GetOrCreatePayloadMap: map get after update: %v", map2After)
+	assert.Equal(t, map2, map2After, "Correct map")
 }
 
 // go test -timeout 30s -run ^TestGetSliceFromSession_Correct$ github.com/zeroboo/go-api-session -v
