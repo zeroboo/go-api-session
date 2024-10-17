@@ -150,7 +150,8 @@ func GetPayloadMap[K comparable, V any](sess *APISession, key string) map[K]V {
 }
 
 // GetOrCreatePayloadMap returns a map from session payload, if not exist, create a new map.
-// If the value of key is not a map, replace it with a new map
+//   - If the value of key is not a map, replace it with a new map.
+//   - If any value of the map is not the correct type, it will be ignored.
 //
 // Return the map and a boolean indicate if the map is created
 func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) (map[K]V, bool) {
@@ -161,9 +162,24 @@ func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) (m
 		return newMap, true
 	}
 
+	//Check if the value is correct map type
 	typedValue, ok := value.(map[K]V)
 	if ok {
 		return typedValue, false
+	}
+
+	//Check if the value is map of any
+	mapAny, ok := value.(map[K]any)
+	if ok {
+		newMap := make(map[K]V)
+		for k, v := range mapAny {
+			mapValue, valueOk := v.(V)
+			if valueOk {
+				newMap[k] = mapValue
+			}
+		}
+		sess.Payload[key] = newMap
+		return newMap, false
 	}
 
 	//Casting failed, replace with new map
