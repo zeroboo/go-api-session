@@ -135,26 +135,26 @@ func (ses *APISession) ValidateSession(session string) bool {
 	return ses.Id == session
 }
 
-func GetPayloadMap[K comparable, V any](sess *APISession, key string) (map[K]V, bool) {
+func GetPayloadMap[K comparable, V any](sess *APISession, key string) map[K]V {
 	value, exist := sess.Payload[key]
 	if !exist {
-		return nil, false
+		return nil
 	}
 
-	typedValue, ok := value.(map[K]V)
-	return typedValue, ok
+	typedValue := value.(map[K]V)
+	return typedValue
 }
 
-func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) (map[K]V, bool) {
+func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) map[K]V {
 	value, exist := sess.Payload[key]
 	if !exist {
 		newMap := make(map[K]V)
 		sess.Payload[key] = value
-		return newMap, false
+		return newMap
 	}
 
-	typedValue, ok := value.(map[K]V)
-	return typedValue, ok
+	typedValue := value.(map[K]V)
+	return typedValue
 }
 func GetPayloadSlice[V any](sess *APISession, key string) ([]V, bool) {
 	value, exist := sess.Payload[key]
