@@ -141,8 +141,12 @@ func GetPayloadMap[K comparable, V any](sess *APISession, key string) map[K]V {
 		return nil
 	}
 
-	typedValue := value.(map[K]V)
-	return typedValue
+	result := make(map[K]V)
+	for k, v := range value.(map[K]any) {
+		result[k] = v.(V)
+	}
+
+	return result
 }
 
 func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) map[K]V {
@@ -153,8 +157,12 @@ func GetOrCreatePayloadMap[K comparable, V any](sess *APISession, key string) ma
 		return newMap
 	}
 
-	typedValue := value.(map[K]V)
-	return typedValue
+	result := make(map[K]V)
+	for k, v := range value.(map[K]any) {
+		result[k] = v.(V)
+	}
+
+	return result
 }
 func GetPayloadSlice[V any](sess *APISession, key string) ([]V, bool) {
 	value, exist := sess.Payload[key]
