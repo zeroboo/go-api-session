@@ -13,7 +13,7 @@ import (
 // go test -timeout 30s -run ^TestValidateSession_ValidCall_NoError$ github.com/zeroboo/go-api-session -v
 func TestValidateSession_ValidCall_NoError(t *testing.T) {
 	owner := "user_" + t.Name()
-	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 10, 5)
+	manager := NewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 10, 5, false)
 
 	sessionId, errNewSession := manager.StartSession(context.TODO(), owner)
 	assert.Nil(t, errNewSession, "Create new session, no error")
@@ -35,7 +35,7 @@ func TestValidateSession_ValidCall_NoError(t *testing.T) {
 // go test -timeout 30s -run ^TestValidateSession_InvalidSessionValue_Error$ github.com/zeroboo/go-api-session
 func TestValidateSession_InvalidSessionValue_Error(t *testing.T) {
 	owner := "user_" + t.Name()
-	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 10, 5)
+	manager := NewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 10, 5, false)
 	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	sessionOwners = append(sessionOwners, owner)
 
@@ -54,7 +54,7 @@ func TestValidateSession_InvalidSessionValue_Error(t *testing.T) {
 // go test -timeout 30s -run ^TestValidateSession_TooFast_Error$ github.com/zeroboo/go-api-session
 func TestValidateSession_TooFast_Error(t *testing.T) {
 	owner := "user_" + t.Name()
-	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 3, 10)
+	manager := NewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 3, 10, false)
 	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	session, _ := manager.GetSession(context.TODO(), owner)
 	sessionOwners = append(sessionOwners, owner)
@@ -80,7 +80,7 @@ func TestValidateSession_TooFast_Error(t *testing.T) {
 // go test -timeout 30s -run ^TestValidateSession_TooFrequently_Error$ github.com/zeroboo/go-api-session
 func TestValidateSession_TooFrequently_Error(t *testing.T) {
 	owner := "user_" + t.Name()
-	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 2, 0)
+	manager := NewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 2, 0, false)
 	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	session, _ := manager.GetSession(context.TODO(), owner)
 	sessionOwners = append(sessionOwners, owner)
@@ -113,7 +113,7 @@ func TestValidateSession_TooFrequently_Error(t *testing.T) {
 func TestValidateSession_NewWindow_Correct(t *testing.T) {
 	owner := "user_" + t.Name()
 	interval := int64(10)
-	manager := CreateNewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 2, interval)
+	manager := NewRedisSessionManager(redisClient, sessionPrefix, 1000, 10000, 2, interval, false)
 	sessionId, _ := manager.StartSession(context.TODO(), owner)
 	sessionOwners = append(sessionOwners, owner)
 	session, _ := manager.GetSession(context.TODO(), owner)

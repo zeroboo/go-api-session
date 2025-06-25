@@ -20,10 +20,11 @@ func main() {
 		86400000,  //session last for 1 day
 		60000,     //Time window is 1 minute
 		10,        //Max 10 calls per minute
-		1000)      //2 calls must be at least 1 second apart
+		1000,      //2 calls must be at least 1 second apart
+		true,      //Track online users
+	)
 
 	owner := "user1"
-
 	//User starts a session: create new
 	sessionId, errGet := sessionManager.StartSession(context.TODO(), owner)
 	if errGet != nil {

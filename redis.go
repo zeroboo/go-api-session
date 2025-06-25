@@ -25,6 +25,10 @@ type RedisSessionManager struct {
 
 	//minimum milliseconds between 2 request, 0 mean no limit
 	requestInterval int64
+
+	//Track online users
+	trackOnlineUsers bool
+	onlineUserKey    string
 }
 
 // Create redis session manager
@@ -45,16 +49,8 @@ func NewRedisSessionManager(redisClient *redis.Client,
 	sessionTTL int64,
 	windowSize int64,
 	maxCallPerWindow int64,
-	requestInterval int64) ISessionManager {
-	return CreateNewRedisSessionManager(redisClient, sessionKeyPrefix, sessionTTL, windowSize, maxCallPerWindow, requestInterval)
-}
-
-func CreateNewRedisSessionManager(redisClient *redis.Client,
-	sessionKeyPrefix string,
-	sessionTTL int64,
-	windowSize int64,
-	maxCallPerWindow int64,
-	requestInterval int64) *RedisSessionManager {
+	requestInterval int64,
+	trackOnlineUsers bool) *RedisSessionManager {
 	sessManager := &RedisSessionManager{
 		redisClient:      redisClient,
 		sessionKeyPrefix: sessionKeyPrefix,
@@ -62,6 +58,13 @@ func CreateNewRedisSessionManager(redisClient *redis.Client,
 		windowSize:       windowSize,
 		maxCallPerWindow: maxCallPerWindow,
 		requestInterval:  requestInterval,
+		trackOnlineUsers: trackOnlineUsers,
+	}
+
+	if trackOnlineUsers {
+		sessManager.onlineUserKey = fmt.Sprintf("online:%s", sessionKeyPrefix)
+	} else {
+		sessManager.onlineUserKey = ""
 	}
 	return sessManager
 }
@@ -124,7 +127,10 @@ func (sm *RedisSessionManager) ValidateAPICall(request *APIRequest, session *API
 		return ErrInvalidSession
 	}
 	now := currentTime.UnixMilli()
-	sm.UpdateSession(now, session)
+	err := sm.UpdateSession(now, session)
+	if err != nil {
+		return err
+	}
 	call := session.GetCallRecord(request.URL)
 
 	if sm.requestInterval > 0 {
@@ -159,14 +165,18 @@ func (sm *RedisSessionManager) GetSession(ctx context.Context, owner string) (*A
 	return session, errUnmarshal
 }
 
-func (sm *RedisSessionManager) UpdateSession(currentMillis int64, session *APISession) {
+func (sm *RedisSessionManager) UpdateSession(currentMillis int64, session *APISession) error {
 	window := currentMillis / sm.windowSize
 	if window != session.Window {
 		session.SetWindow(window)
 	}
+	session.Updated = currentMillis
 
+	return sm.SetSession(context.Background(), session.Owner, session)
 }
+
 func (sm *RedisSessionManager) SetSession(ctx context.Context, owner string, session *APISession) error {
+	session.Updated = time.Now().UnixMilli()
 	payload, errSerialize := msgpack.Marshal(session)
 	if errSerialize != nil {
 		return errSerialize
@@ -174,8 +184,21 @@ func (sm *RedisSessionManager) SetSession(ctx context.Context, owner string, ses
 
 	key := sm.GetSessionKey(owner)
 	cmd := sm.redisClient.Set(ctx, key, payload, sm.sessionTTL)
+	if cmd.Err() != nil {
+		return cmd.Err()
+	}
 
-	return cmd.Err()
+	if sm.trackOnlineUsers {
+		// Update online user tracking
+		cmd := sm.redisClient.ZAdd(context.Background(), sm.onlineUserKey, redis.Z{
+			Score:  float64(session.Updated),
+			Member: session.Owner,
+		})
+		if cmd.Err() != nil {
+			return cmd.Err()
+		}
+	}
+	return nil
 }
 
 // StartSession creates a new session for the owner and insert to db
@@ -195,7 +218,18 @@ func (sm *RedisSessionManager) StartSession(ctx context.Context, owner string) (
 func (sm *RedisSessionManager) DeleteSession(ctx context.Context, owner string) error {
 	key := sm.GetSessionKey(owner)
 	cmd := sm.redisClient.Del(ctx, key)
-	return cmd.Err()
+	if cmd.Err() != nil {
+		return cmd.Err()
+	}
+
+	if sm.trackOnlineUsers {
+		// Remove from online users tracking
+		cmd := sm.redisClient.ZRem(ctx, sm.onlineUserKey, owner)
+		if cmd.Err() != nil {
+			return cmd.Err()
+		}
+	}
+	return nil
 }
 
 func (sm *RedisSessionManager) GetRequestInterval() int64 {
@@ -208,4 +242,20 @@ func (sm *RedisSessionManager) GetMaxCallPerWindow() int64 {
 
 func (sm *RedisSessionManager) GetWindowSize() int64 {
 	return sm.windowSize
+}
+
+func (sm *RedisSessionManager) GetOnlineUsers(ctx context.Context) (map[string]int64, error) {
+	if !sm.trackOnlineUsers {
+		return nil, fmt.Errorf("online users tracking is disabled")
+	}
+
+	cmd := sm.redisClient.ZRangeWithScores(ctx, sm.onlineUserKey, 0, -1)
+	if cmd.Err() != nil {
+		return nil, cmd.Err()
+	}
+	onlineUsers := make(map[string]int64)
+	for _, z := range cmd.Val() {
+		onlineUsers[z.Member.(string)] = int64(z.Score)
+	}
+	return onlineUsers, nil
 }

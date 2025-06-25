@@ -8,6 +8,7 @@ Handle session for API, supports rate limitting
   - request too frequently (HTTP code 429 Too Many Requests) using Fixed Window algorithm
   - request too fast (HTTP code 425 Too Early)
 - Session payload: session can store extra data
+- Online users:
 ## 2. Usage
 ### Install
 ```shell
@@ -22,12 +23,15 @@ go get github.com/zeroboo/go-api-session
 		86400000,  //session last for 1 day
 		60000,     //Time window is 1 minute
 		10,        //Max 10 calls per minute
-		1000)      //2 calls must be at least 1 second apart
+		1000,      //2 calls must be at least 1 second apart
+		true,      //Track online users
+	)
 
-	owner := "user1"
 ```
 ### Create new session
 ```golang
+	owner := "owner"
+	///...
 	//User starts a session: create new
 	sessionId, errGet := sessionManager.StartSession(context.TODO(), owner)
 	if errGet != nil {
@@ -37,6 +41,8 @@ go get github.com/zeroboo/go-api-session
 ```
 ### Use session to verify API calls
 ```golang
+	owner:= "owner"
+
 	//...
 	//Update in api call
 	session, errSession := sessionManager.RecordAPICall(context.TODO(), sessionValue, owner, "url1")
@@ -68,7 +74,16 @@ knownTokens, ok := GetPayloadSlice[string](session, "oldTokens")//value: []strin
 //Retrieve nickname by type assertion
 value := session.GetPayload("nickname")
 nickname, ok := value.(string)
-
-
 ```
 
+### Clear session
+```golang
+errDelete := manager.DeleteSession(context.TODO(), sessionId)
+```
+
+### Get online users
+```
+onlineUsers, errGet := manager.GetOnlineUsers(context.TODO(), sessionId)
+// onlineUsers is a map of userId to his/her last activity time
+	
+```

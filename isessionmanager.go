@@ -42,4 +42,6 @@ type ISessionManager interface {
 	GetRequestInterval() int64
 	GetMaxCallPerWindow() int64
 	GetWindowSize() int64
+
+	GetOnlineUsers(ctx context.Context) (map[string]int64, error)
 }

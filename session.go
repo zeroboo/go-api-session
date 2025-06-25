@@ -2,10 +2,12 @@ package apisession
 
 import (
 	"fmt"
+	"time"
 )
 
 type APISession struct {
-	Id string `json:"i" msgpack:"i"`
+	Id    string `json:"i" msgpack:"i"`
+	Owner string `json:"o" msgpack:"o"`
 	//Map of url to API call track
 	Records map[string]*APICallRecord `json:"r" msgpack:"r"`
 
@@ -14,6 +16,9 @@ type APISession struct {
 
 	//Payload are extra data of session
 	Payload map[string]any `json:"p" msgpack:"p"`
+
+	Created int64 `json:"c" msgpack:"c"` //Created time in milliseconds
+	Updated int64 `json:"u" msgpack:"u"` //Updated time in milliseconds
 }
 
 // Tracks how an api is being called
@@ -40,18 +45,24 @@ func (session *APISession) RecordCall(url string) error {
 func NewAPISession(owner string) *APISession {
 	return &APISession{
 		Id:      GenerateSessionValue(owner),
+		Owner:   owner,
 		Records: make(map[string]*APICallRecord),
 		Window:  0,
 		Payload: nil,
+		Created: time.Now().UnixMilli(),
+		Updated: time.Now().UnixMilli(),
 	}
 }
 
 func NewAPISessionWithPayload(owner string, payload map[string]any) *APISession {
 	return &APISession{
 		Id:      GenerateSessionValue(owner),
+		Owner:   owner,
 		Records: make(map[string]*APICallRecord),
 		Window:  0,
 		Payload: payload,
+		Created: time.Now().UnixMilli(),
+		Updated: time.Now().UnixMilli(),
 	}
 }
 
