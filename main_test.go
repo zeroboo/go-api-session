@@ -66,9 +66,9 @@ func TestDeleteSession(t *testing.T) {
 	}
 
 	// Verify that the session is deleted
-	_, errGetDeletedSession := manager.GetSession(context.TODO(), owner)
-	if errGetDeletedSession == nil {
-		t.Fatalf("Expected error when getting deleted session, got none")
-	}
+	session, errGetDeletedSession := manager.GetSession(context.TODO(), owner)
+	assert.Nil(t, errGetDeletedSession, "Get deleted session should return nil")
+	assert.Nil(t, session, "Session should be nil after deletion")
+
 	log.Infof("Successfully deleted session for owner %s with ID %s", owner, sessionId)
 }

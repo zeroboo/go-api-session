@@ -44,6 +44,8 @@ type RedisSessionManager struct {
 // - maxCallPerWindow: max calls allowed per window
 //
 // - minRequestInterval: minimum milliseconds between 2 request, 0 mean no limit
+//
+// - trackOnlineUsers: if true, track online users in redis sorted set
 func NewRedisSessionManager(redisClient *redis.Client,
 	sessionKeyPrefix string,
 	sessionTTL int64,
