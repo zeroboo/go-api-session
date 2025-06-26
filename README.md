@@ -8,7 +8,7 @@ Handle session for API, supports rate limitting
   - request too frequently (HTTP code 429 Too Many Requests) using Fixed Window algorithm
   - request too fast (HTTP code 425 Too Early)
 - Session payload: session can store extra data
-- Online users:
+- Online users: keep online users in a Redis's sorted set
 ## 2. Usage
 ### Install
 ```shell
