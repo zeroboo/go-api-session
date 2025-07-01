@@ -2,6 +2,7 @@ package apisession
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 
@@ -60,14 +61,14 @@ func TestDeleteSession(t *testing.T) {
 	}
 	assert.Equal(t, session.Id, sessionId, "Session ID must match")
 
-	errDelete := manager.DeleteSession(context.TODO(), sessionId)
+	errDelete := manager.DeleteSession(context.TODO(), owner)
 	if errDelete != nil {
 		t.Errorf("Delete session failed: %v", errDelete)
 	}
 
 	// Verify that the session is deleted
-	session, errGetDeletedSession := manager.GetSession(context.TODO(), owner)
-	assert.Nil(t, errGetDeletedSession, "Get deleted session should return nil")
+	session, errGet := manager.GetSession(context.TODO(), owner)
+	assert.True(t, errors.Is(errGet, redis.Nil), "Get deleted session should return nil")
 	assert.Nil(t, session, "Session should be nil after deletion")
 
 	log.Infof("Successfully deleted session for owner %s with ID %s", owner, sessionId)

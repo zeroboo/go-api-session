@@ -217,6 +217,15 @@ func (sm *RedisSessionManager) StartSession(ctx context.Context, owner string) (
 	return session.Id, nil
 }
 
+func (sm *RedisSessionManager) StartSessionWithPayload(ctx context.Context, owner string, payload map[string]any) (*APISession, error) {
+	session := NewAPISessionWithPayload(owner, payload)
+	errSet := sm.SetSession(ctx, owner, session)
+	if errSet != nil {
+		return nil, errSet
+	}
+	return session, nil
+}
+
 func (sm *RedisSessionManager) DeleteSession(ctx context.Context, owner string) error {
 	key := sm.GetSessionKey(owner)
 	cmd := sm.redisClient.Del(ctx, key)

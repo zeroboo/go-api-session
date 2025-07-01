@@ -37,11 +37,27 @@ type ISessionManager interface {
 	// Saves session of a user to database
 	SetSession(ctx context.Context, owner string, session *APISession) error
 
+	// StartSession creates a new session for the owner and insert to db
+	// Returns:
+	//   - sessionId string: id of new session
+	//   - error: error if exists, nil is successful
 	StartSession(ctx context.Context, owner string) (string, error)
 
+	// StartSession creates a new session for the owner and insert to db
+	// Returns:
+	//   - session *APISession: new session with payload
+	//   - error: error if exists, nil is successful
+	StartSessionWithPayload(ctx context.Context, owner string, payload map[string]any) (*APISession, error)
+
+	//GetRequestInterval returns the interval in milliseconds for API requests
 	GetRequestInterval() int64
+
+	// GetMaxCallPerWindow returns the maximum number of API calls allowed per time window
 	GetMaxCallPerWindow() int64
+
+	// GetWindowSize returns the size of the time window in milliseconds
 	GetWindowSize() int64
 
+	// GetOnlineUsers returns a map of online users with their last activity timestamp
 	GetOnlineUsers(ctx context.Context) (map[string]int64, error)
 }
